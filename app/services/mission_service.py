@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import BusinessRuleError, ResourceNotFoundError
+from app.core.ids import normalize_uuid
 from app.models.mission import Mission
 from app.schemas.mission import MISSION_STATUSES, MissionCreate, MissionUpdate
 
@@ -43,6 +44,7 @@ class MissionService:
 
     @staticmethod
     def get_mission(db: Session, mission_id: str) -> Mission:
+        mission_id = normalize_uuid(mission_id, "mission_id")
         mission = db.get(Mission, mission_id)
         if mission is None:
             raise ResourceNotFoundError("Mission not found")
