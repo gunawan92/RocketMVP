@@ -1,6 +1,7 @@
 import os
 from functools import lru_cache
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import BaseModel
 
@@ -32,9 +33,24 @@ class Settings(BaseModel):
 
     @property
     def sqlalchemy_database_url(self) -> str:
-        if self.database_url.startswith("postgresql://"):
-            return self.database_url.replace("postgresql://", "postgresql+psycopg://", 1)
-        return self.database_url
+        database_url = self.database_url
+        if database_url.startswith("postgresql://"):
+            database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+        if database_url.startswith("postgresql+psycopg://"):
+            return self._without_unsupported_psycopg_options(database_url)
+        return database_url
+
+    @staticmethod
+    def _without_unsupported_psycopg_options(database_url: str) -> str:
+        parsed = urlsplit(database_url)
+        query_items = [(key, value) for key, value in parse_qsl(parsed.query) if key != "channel_binding"]
+        query_keys = {key for key, _ in query_items}
+        host = parsed.hostname or ""
+        if host.endswith(".neon.tech") and "options" not in query_keys:
+            endpoint_id = host.split(".", 1)[0]
+            query_items.append(("options", f"endpoint={endpoint_id}"))
+        query = urlencode(query_items)
+        return urlunsplit((parsed.scheme, parsed.netloc, parsed.path, query, parsed.fragment))
 
 
 @lru_cache(maxsize=1)
