@@ -42,7 +42,7 @@ Pendekatan ini memberikan kombinasi terbaik antara:
 
 # 2. Database Decision
 
-psql 'postgresql://neondb_owner:npg_w2EhTgxFZty6@ep-cold-frost-a1d1qk9d-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+
 
 ## Primary Database
 
