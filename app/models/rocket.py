@@ -1,8 +1,7 @@
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from app.database.base import Base, GUID, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class Rocket(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -20,8 +19,8 @@ class Rocket(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         Index("idx_rockets_engine_id", "engine_id"),
     )
 
-    mission_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("missions.id", ondelete="CASCADE"), nullable=False)
-    engine_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("engines.id", ondelete="SET NULL"))
+    mission_id: Mapped[str] = mapped_column(GUID(), ForeignKey("missions.id", ondelete="CASCADE"), nullable=False)
+    engine_id: Mapped[str | None] = mapped_column(GUID(), ForeignKey("engines.id", ondelete="SET NULL"))
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     wet_mass: Mapped[float] = mapped_column(nullable=False)
     dry_mass: Mapped[float] = mapped_column(nullable=False)

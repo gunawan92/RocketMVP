@@ -1,11 +1,9 @@
+from datetime import datetime
+from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey, Index, String
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from sqlalchemy import DateTime
-
-from app.database.base import Base, UUIDPrimaryKeyMixin, utc_now
-from datetime import datetime
+from app.database.base import Base, GUID, JSONData, UUIDPrimaryKeyMixin, utc_now
 
 
 class CalculatorResult(UUIDPrimaryKeyMixin, Base):
@@ -16,11 +14,11 @@ class CalculatorResult(UUIDPrimaryKeyMixin, Base):
         Index("idx_calculator_results_type", "calculator_type"),
     )
 
-    mission_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("missions.id", ondelete="SET NULL"))
-    rocket_id: Mapped[str | None] = mapped_column(UUID(as_uuid=False), ForeignKey("rockets.id", ondelete="SET NULL"))
+    mission_id: Mapped[str | None] = mapped_column(GUID(), ForeignKey("missions.id", ondelete="SET NULL"))
+    rocket_id: Mapped[str | None] = mapped_column(GUID(), ForeignKey("rockets.id", ondelete="SET NULL"))
     calculator_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    input_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    result_data: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    input_data: Mapped[dict] = mapped_column(JSONData(), nullable=False)
+    result_data: Mapped[dict] = mapped_column(JSONData(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 
     mission: Mapped["Mission | None"] = relationship(back_populates="calculator_results")

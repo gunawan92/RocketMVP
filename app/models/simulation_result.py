@@ -1,10 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Index, String, Text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database.base import Base, UUIDPrimaryKeyMixin, utc_now
+from app.database.base import Base, GUID, JSONData, UUIDPrimaryKeyMixin, utc_now
 
 
 class SimulationResult(UUIDPrimaryKeyMixin, Base):
@@ -16,16 +15,16 @@ class SimulationResult(UUIDPrimaryKeyMixin, Base):
         Index("idx_simulation_results_created_at", "created_at"),
     )
 
-    mission_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("missions.id", ondelete="CASCADE"), nullable=False)
-    rocket_id: Mapped[str] = mapped_column(UUID(as_uuid=False), ForeignKey("rockets.id", ondelete="CASCADE"), nullable=False)
+    mission_id: Mapped[str] = mapped_column(GUID(), ForeignKey("missions.id", ondelete="CASCADE"), nullable=False)
+    rocket_id: Mapped[str] = mapped_column(GUID(), ForeignKey("rockets.id", ondelete="CASCADE"), nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="PENDING", nullable=False)
     apogee: Mapped[float | None]
     max_velocity: Mapped[float | None]
     max_acceleration: Mapped[float | None]
     flight_duration: Mapped[float | None]
-    summary: Mapped[dict | None] = mapped_column(JSONB)
-    time_series: Mapped[dict | None] = mapped_column(JSONB)
-    raw_result: Mapped[dict | None] = mapped_column(JSONB)
+    summary: Mapped[dict | None] = mapped_column(JSONData())
+    time_series: Mapped[dict | None] = mapped_column(JSONData())
+    raw_result: Mapped[dict | None] = mapped_column(JSONData())
     error_message: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, nullable=False)
 

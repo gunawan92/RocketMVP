@@ -32,6 +32,12 @@ class ResourceNotFoundError(AppError):
         super().__init__(message, code="RESOURCE_NOT_FOUND", http_status_code=status.HTTP_404_NOT_FOUND)
 
 
+class SimulationFailedError(AppError):
+    def __init__(self, message: str = "Simulation failed", details: list[dict] | None = None):
+        self.details = details or []
+        super().__init__(message, code="SIMULATION_FAILED", http_status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
