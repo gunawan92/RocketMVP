@@ -210,3 +210,61 @@ def test_business_rule_errors(client):
     )
     assert invalid_uuid.status_code == 422
     assert invalid_uuid.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_game_education_presets_and_sandbox(client):
+    challenges = assert_success(client.get("/api/v1/game/challenges"))["data"]
+    engines = assert_success(client.get("/api/v1/game/engine-presets"))["data"]
+    weather = assert_success(client.get("/api/v1/game/weather-presets"))["data"]
+
+    assert len(challenges) >= 4
+    assert [engine["id"] for engine in engines] == ["A", "B", "C", "D"]
+    assert {item["id"] for item in weather} == {"clear", "cloudy", "windy", "storm"}
+
+    result = assert_success(
+        client.post(
+            "/api/v1/game/sandbox/run",
+            json={
+                "mode": "challenge",
+                "challenge_id": "reach-1km",
+                "rocket_height": 12,
+                "rocket_diameter": 0.8,
+                "nose_cone": "medium",
+                "fin_size": "medium",
+                "payload_mass": 10,
+                "engine_preset": "B",
+                "fuel_stages": "single",
+                "weather_preset": "clear",
+            },
+        )
+    )["data"]
+
+    assert result["summary"]["apogee"] > 0
+    assert 0 <= result["score"] <= 100
+    assert 0 <= result["stars"] <= 5
+    assert "learning_feedback" in result
+    assert "selected_configuration" in result
+
+
+def test_game_failure_feedback(client):
+    result = assert_success(
+        client.post(
+            "/api/v1/game/sandbox/run",
+            json={
+                "mode": "challenge",
+                "challenge_id": "reach-10km",
+                "rocket_height": 50,
+                "rocket_diameter": 0.5,
+                "nose_cone": "short",
+                "fin_size": "small",
+                "payload_mass": 100,
+                "engine_preset": "A",
+                "fuel_stages": "single",
+                "weather_preset": "storm",
+            },
+        )
+    )["data"]
+
+    assert result["mission_success"] is False
+    assert len(result["failures"]) > 0
+    assert len(result["learning_feedback"]["suggestions"]) > 0

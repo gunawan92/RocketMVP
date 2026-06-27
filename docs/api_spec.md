@@ -1769,3 +1769,100 @@ Recommended implementation order:
 - Jangan membuat multi-stage rocket pada MVP.
 - Jangan membuat orbital simulation pada MVP.
 - Fokus utama MVP adalah user dapat membuat mission, mengatur rocket, menjalankan calculator, menjalankan simulation, dan melihat hasilnya.
+---
+
+# 17. PRD V2 Game & Education API
+
+Game API menyediakan layer edukasi stateless untuk frontend PRD V2.
+
+## 17.1 List Mission Challenges
+
+```txt
+GET /api/v1/game/challenges
+```
+
+Returns target apogee, reward, level, and description presets.
+
+## 17.2 List Engine Presets
+
+```txt
+GET /api/v1/game/engine-presets
+```
+
+Returns student-facing Engine A/B/C/D presets.
+
+## 17.3 List Weather Presets
+
+```txt
+GET /api/v1/game/weather-presets
+```
+
+Returns clear, cloudy, windy, and storm presets.
+
+## 17.4 Run Sandbox / Challenge Simulation
+
+```txt
+POST /api/v1/game/sandbox/run
+```
+
+### Request Body
+
+```json
+{
+  "mode": "challenge",
+  "challenge_id": "reach-1km",
+  "rocket_height": 12,
+  "rocket_diameter": 0.8,
+  "nose_cone": "medium",
+  "fin_size": "medium",
+  "payload_mass": 10,
+  "engine_preset": "B",
+  "fuel_stages": "single",
+  "weather_preset": "clear"
+}
+```
+
+### Response Data
+
+```json
+{
+  "mode": "challenge",
+  "mission_success": true,
+  "mission_status": "SUCCESS",
+  "score": 82,
+  "stars": 5,
+  "score_breakdown": {
+    "mission_success": 100,
+    "fuel_efficiency": 74.2,
+    "payload_delivery": 52.4,
+    "stability": 88.1
+  },
+  "failures": [],
+  "learning_feedback": {
+    "title": "Mission Complete",
+    "message": "Apogee reached 1200 m with stability 88/100.",
+    "suggestions": ["Try increasing payload or using less fuel while still reaching the target."]
+  },
+  "summary": {
+    "apogee": 1200,
+    "max_velocity": 220,
+    "max_acceleration": 35,
+    "flight_duration": 42,
+    "target_apogee": 1000,
+    "twr": 1.8,
+    "stability": 88,
+    "fuel_efficiency": 72
+  },
+  "selected_configuration": {}
+}
+```
+
+Failure codes may include:
+
+- `ROCKET_TOO_HEAVY`
+- `FUEL_EXHAUSTED_BEFORE_TARGET`
+- `UNSTABLE_FLIGHT`
+- `STRONG_WIND`
+- `STRUCTURAL_FAILURE`
+- `STAGE_SEPARATION_FAILURE`
+- `PAYLOAD_FAILURE`

@@ -37,6 +37,7 @@ Implemented API modules:
 - Simulation comparison API.
 - Dashboard summary API.
 - Formal pytest suite for the backend MVP flow.
+- PRD V2 game/education API layer for challenge presets, engine presets, weather presets, sandbox run, scoring, failure reason, and learning feedback.
 
 ## Simulation Status
 
@@ -106,18 +107,31 @@ These items are not blockers for the current backend MVP, but should be tracked 
 
 | PRD V2 Area | Status | Notes |
 |---|---|---|
-| Rocket Sandbox | Not started | Needs free experiment mode outside mission CRUD flow. |
-| Mission Challenge | Partial | Mission CRUD exists, but target, reward, and level data are not modeled yet. |
+| Rocket Sandbox | Initial backend done | `POST /api/v1/game/sandbox/run` runs stateless educational sandbox simulation. |
+| Mission Challenge | Initial backend done | `GET /api/v1/game/challenges` provides target, reward, and level presets. |
 | Classroom Mode | Not started | Future scope, not required for initial MVP. |
-| Adjustable Parameters game version | Partial | Geometry exists, but not simplified into student-facing controls like height, diameter, fin size, nose cone, and payload preset. |
-| Engine A/B/C/D | Not started | Current engine model is technical; student-facing preset engines are not modeled yet. |
-| Fuel System single/two/three stage | Not started | Multi-stage rocket and fuel stage model are not implemented yet. |
-| Weather System | Not started | Needs weather presets such as clear, cloudy, windy, and storm. |
-| Failure Engine | Not started | Important for educational outcomes and failure explanation. |
-| Scoring System | Not started | Needs score calculation and star rating. |
-| Learning feedback | Not started | Needs educational feedback messages after simulation. |
-| Result screen data | Partial | Numeric result data exists, but mission/game result status is not modeled yet. |
+| Adjustable Parameters game version | Initial backend done | Sandbox request supports height, diameter, fin size, nose cone, payload, engine, stages, and weather. |
+| Engine A/B/C/D | Initial backend done | `GET /api/v1/game/engine-presets` returns student-facing engine presets. |
+| Fuel System single/two/three stage | Initial backend done | Sandbox request supports `single`, `two`, and `three` stages in scoring/trajectory approximation. |
+| Weather System | Initial backend done | `GET /api/v1/game/weather-presets` returns clear, cloudy, windy, and storm presets. |
+| Failure Engine | Initial backend done | Sandbox run returns failure codes such as heavy rocket, unstable flight, strong wind, structural failure, and payload failure. |
+| Scoring System | Initial backend done | Sandbox run returns score, stars, and weighted score breakdown. |
+| Learning feedback | Initial backend done | Sandbox run returns educational feedback title, message, and suggestions. |
+| Result screen data | Initial backend done | Sandbox run returns mission status, score, stars, failures, summary, and selected configuration. |
 | Real RocketPy Flight | Not fully complete | Current simulation still uses analytical placeholder inside RocketPy adapter boundary. |
+
+## PRD V2 Game API
+
+Initial stateless endpoints:
+
+```text
+GET  /api/v1/game/challenges
+GET  /api/v1/game/engine-presets
+GET  /api/v1/game/weather-presets
+POST /api/v1/game/sandbox/run
+```
+
+The game API is intentionally stateless for the first PRD V2 pass. It does not create classroom records or mutate Neon tables yet.
 
 ## Test Suite
 
@@ -131,7 +145,25 @@ The tests use an in-memory SQLite database through FastAPI dependency override, 
 
 ## Frontend Status
 
-Frontend is not started yet.
+Frontend dashboard and first mission flow are available in `C:\xampp\htdocs\sideJob\rocketFe`.
+
+Important frontend integration note:
+
+- The frontend can connect to the real FastAPI backend through `VITE_API_BASE_URL`.
+- The frontend still contains a localStorage mock/sandbox fallback through `src/api/mockStore.ts`.
+- The sidebar can switch between FastAPI live mode and sandbox mode.
+- If the backend is unreachable, the frontend API client can fall back to sandbox mode.
+- For real integration testing, make sure sandbox mode is disabled by setting `localStorage.use_demo_backend = "false"` or clearing the browser localStorage.
+
+Current frontend UX checkpoint:
+
+- Engine form now supports visual presets and slider-based numeric controls.
+- Rocket form now supports visual presets and slider-based mass controls.
+- Advanced rocket geometry now has summary cards and slider controls for body, nose cone, fins, mass placement, and drag settings.
+- Numeric input is still available for precision, but users can start from presets and adjust visually.
+- PRD V2 frontend game layer is added as a separate route at `/gameV1`, without replacing the existing dashboard or mission panels.
+- `/gameV1` consumes the backend `/api/v1/game/*` endpoints for challenge presets, engine presets, weather presets, sandbox/challenge run, score, stars, failures, and learning feedback.
+- `/gameV1` now includes a 2.5D Rocket Launch Simulation Screen with builder summary, launch pad, animated rocket, flame/smoke, wind drift, stage separation cue, live telemetry, mission progress, and result/feedback panel.
 
 Recommended frontend start point after backend API stabilizes:
 
