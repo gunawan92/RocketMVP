@@ -445,7 +445,15 @@ POST /api/v1/engines
   "thrust": 5000,
   "isp": 210,
   "burn_time": 4.5,
-  "propellant_mass": 12.5
+  "propellant_mass": 12.5,
+  "motor_curve": [
+    { "time": 0, "thrust": 0 },
+    { "time": 0.5, "thrust": 4500 },
+    { "time": 2.5, "thrust": 5200 },
+    { "time": 4.5, "thrust": 0 }
+  ],
+  "nozzle_radius": 0.035,
+  "throat_radius": 0.012
 }
 ```
 
@@ -458,6 +466,9 @@ POST /api/v1/engines
 | isp | Required, > 0 | seconds |
 | burn_time | Required, > 0 | seconds |
 | propellant_mass | Optional, >= 0 | kg |
+| motor_curve | Optional, min 2 points, starts at 0, time strictly increasing | seconds / Newton |
+| nozzle_radius | Optional, > 0 | meter |
+| throat_radius | Optional, > 0 | meter |
 
 ### Response 201
 
@@ -624,7 +635,19 @@ POST /api/v1/missions/{mission_id}/rockets
   "wet_mass": 50,
   "dry_mass": 30,
   "payload_mass": 5,
-  "engine_id": "2e7d499d-6d31-4634-9da7-09e3f126a001"
+  "engine_id": "2e7d499d-6d31-4634-9da7-09e3f126a001",
+  "diameter": 0.18,
+  "length": 1.8,
+  "drag_coefficient": 0.75,
+  "center_of_mass_position": 0.9,
+  "motor_position": 1.4,
+  "nose_length": 0.35,
+  "nose_kind": "vonKarman",
+  "fin_count": 4,
+  "fin_root_chord": 0.22,
+  "fin_tip_chord": 0.1,
+  "fin_span": 0.12,
+  "fin_position": 1.55
 }
 ```
 
@@ -637,6 +660,18 @@ POST /api/v1/missions/{mission_id}/rockets
 | dry_mass | Required, > 0 | kg |
 | payload_mass | Required, >= 0 | kg |
 | engine_id | Required UUID | - |
+| diameter | Optional, > 0 | meter |
+| length | Optional, > 0 | meter |
+| drag_coefficient | Optional, > 0 | - |
+| center_of_mass_position | Optional, >= 0 | meter |
+| motor_position | Optional, >= 0 | meter |
+| nose_length | Optional, > 0 | meter |
+| nose_kind | Optional | - |
+| fin_count | Optional, > 0 | count |
+| fin_root_chord | Optional, > 0 | meter |
+| fin_tip_chord | Optional, > 0 | meter |
+| fin_span | Optional, > 0 | meter |
+| fin_position | Optional, >= 0 | meter |
 
 Business rules:
 

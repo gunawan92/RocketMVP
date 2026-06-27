@@ -30,9 +30,10 @@ def list_missions(
     page: int = Query(default=1, ge=1),
     limit: int = Query(default=10, ge=1, le=100),
     status_filter: str | None = Query(default=None, alias="status"),
+    search: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> dict:
-    missions, total = MissionService.list_missions(db, page=page, limit=limit, status=status_filter)
+    missions, total = MissionService.list_missions(db, page=page, limit=limit, status=status_filter, search=search)
     return success_response(
         message="Missions retrieved successfully",
         data=[serialize_mission(mission) for mission in missions],

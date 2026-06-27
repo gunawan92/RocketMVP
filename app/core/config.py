@@ -30,6 +30,11 @@ class Settings(BaseModel):
     api_prefix: str = os.getenv("API_PREFIX", "/api/v1")
     database_url: str = os.getenv("DATABASE_URL", "sqlite:///./rocket_mission_planner.db")
     g0: float = float(os.getenv("STANDARD_GRAVITY", "9.80665"))
+    cors_origins: str = os.getenv("CORS_ORIGINS", "http://127.0.0.1:3000,http://localhost:3000")
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
     @property
     def sqlalchemy_database_url(self) -> str:

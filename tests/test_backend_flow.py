@@ -22,6 +22,14 @@ def create_engine(client, name="Test Engine"):
                 "isp": 210,
                 "burn_time": 4.5,
                 "propellant_mass": 12.5,
+                "motor_curve": [
+                    {"time": 0, "thrust": 0},
+                    {"time": 0.5, "thrust": 4500},
+                    {"time": 2.5, "thrust": 5200},
+                    {"time": 4.5, "thrust": 0},
+                ],
+                "nozzle_radius": 0.035,
+                "throat_radius": 0.012,
             },
         ),
         201,
@@ -38,6 +46,18 @@ def create_rocket(client, mission_id, engine_id, name="Test Rocket", wet_mass=50
                 "dry_mass": 30,
                 "payload_mass": 5,
                 "engine_id": engine_id,
+                "diameter": 0.18,
+                "length": 1.8,
+                "drag_coefficient": 0.75,
+                "center_of_mass_position": 0.9,
+                "motor_position": 1.4,
+                "nose_length": 0.35,
+                "nose_kind": "vonKarman",
+                "fin_count": 4,
+                "fin_root_chord": 0.22,
+                "fin_tip_chord": 0.1,
+                "fin_span": 0.12,
+                "fin_position": 1.55,
             },
         ),
         201,
@@ -51,6 +71,12 @@ def run_simulation(client, mission_id, rocket_id):
             json={
                 "mission_id": mission_id,
                 "rocket_id": rocket_id,
+                "environment": {
+                    "latitude": -6.2,
+                    "longitude": 106.8,
+                    "elevation": 12,
+                    "date": "2026-06-27",
+                },
                 "options": {"store_result": True, "include_time_series": True},
             },
         )
@@ -66,6 +92,29 @@ def test_health_and_dashboard_empty(client):
     assert dashboard["data"]["best_apogee"]["value"] is None
 
 
+def test_cors_preflight_for_frontend(client):
+    response = client.options(
+        "/api/v1/dashboard/summary",
+        headers={
+            "Origin": "http://127.0.0.1:3000",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://127.0.0.1:3000"
+
+
+def test_mission_search_for_frontend(client):
+    create_mission(client, name="Alpha Search Mission")
+    create_mission(client, name="Beta Flight")
+
+    result = assert_success(client.get("/api/v1/missions?page=1&limit=10&search=Alpha"))
+
+    assert result["meta"]["total"] == 1
+    assert result["data"][0]["name"] == "Alpha Search Mission"
+
+
 def test_mission_engine_rocket_simulation_e2e(client):
     mission = create_mission(client)
     engine = create_engine(client)
@@ -75,6 +124,8 @@ def test_mission_engine_rocket_simulation_e2e(client):
     assert simulation["status"] == "SUCCESS"
     assert simulation["summary"]["apogee"] > 0
     assert len(simulation["time_series"]["altitude"]) > 0
+    assert simulation["raw_result"]["thrust_profile"]["source"] == "motor_curve"
+    assert simulation["raw_result"]["geometry"]["fin_count"] == 4
 
     detail = assert_success(client.get(f"/api/v1/simulations/{simulation['id']}"))
     assert detail["data"]["id"] == simulation["id"]

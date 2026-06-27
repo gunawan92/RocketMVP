@@ -17,7 +17,13 @@ class MissionService:
         return mission
 
     @staticmethod
-    def list_missions(db: Session, page: int = 1, limit: int = 10, status: str | None = None) -> tuple[list[Mission], int]:
+    def list_missions(
+        db: Session,
+        page: int = 1,
+        limit: int = 10,
+        status: str | None = None,
+        search: str | None = None,
+    ) -> tuple[list[Mission], int]:
         if status is not None:
             status = status.upper()
             MissionService._validate_status(status)
@@ -31,6 +37,11 @@ class MissionService:
         if status is not None:
             statement = statement.where(Mission.status == status)
             count_statement = count_statement.where(Mission.status == status)
+
+        if search:
+            pattern = f"%{search}%"
+            statement = statement.where(Mission.name.ilike(pattern) | Mission.description.ilike(pattern))
+            count_statement = count_statement.where(Mission.name.ilike(pattern) | Mission.description.ilike(pattern))
 
         total = db.scalar(count_statement) or 0
         missions = list(

@@ -259,6 +259,9 @@ Table `engines` menyimpan data engine roket.
 | isp | DOUBLE PRECISION | Yes | Specific impulse dalam detik |
 | burn_time | DOUBLE PRECISION | No | Durasi pembakaran dalam detik |
 | propellant_mass | DOUBLE PRECISION | No | Massa propellant dalam kg |
+| motor_curve | JSONB | No | Array titik thrust-vs-time: `{time, thrust}` |
+| nozzle_radius | DOUBLE PRECISION | No | Radius nozzle dalam meter |
+| throat_radius | DOUBLE PRECISION | No | Radius throat nozzle dalam meter |
 | manufacturer | VARCHAR(150) | No | Nama pembuat engine |
 | notes | TEXT | No | Catatan tambahan |
 | created_at | TIMESTAMP | Yes | Waktu dibuat |
@@ -271,6 +274,9 @@ thrust > 0
 isp > 0
 burn_time > 0 if provided
 propellant_mass > 0 if provided
+motor_curve time values strictly increasing if provided
+nozzle_radius > 0 if provided
+throat_radius > 0 if provided
 ```
 
 ### SQL Draft
@@ -283,6 +289,9 @@ CREATE TABLE engines (
     isp DOUBLE PRECISION NOT NULL CHECK (isp > 0),
     burn_time DOUBLE PRECISION CHECK (burn_time IS NULL OR burn_time > 0),
     propellant_mass DOUBLE PRECISION CHECK (propellant_mass IS NULL OR propellant_mass > 0),
+    motor_curve JSONB,
+    nozzle_radius DOUBLE PRECISION CHECK (nozzle_radius IS NULL OR nozzle_radius > 0),
+    throat_radius DOUBLE PRECISION CHECK (throat_radius IS NULL OR throat_radius > 0),
     manufacturer VARCHAR(150),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -310,6 +319,15 @@ Table `rockets` menyimpan konfigurasi roket.
 | diameter | DOUBLE PRECISION | No | Diameter roket dalam meter |
 | length | DOUBLE PRECISION | No | Panjang roket dalam meter |
 | drag_coefficient | DOUBLE PRECISION | No | Koefisien drag |
+| center_of_mass_position | DOUBLE PRECISION | No | Posisi center of mass dari referensi roket |
+| motor_position | DOUBLE PRECISION | No | Posisi motor dari referensi roket |
+| nose_length | DOUBLE PRECISION | No | Panjang nose cone |
+| nose_kind | VARCHAR(80) | No | Jenis nose cone, contoh `vonKarman` |
+| fin_count | INTEGER | No | Jumlah fin |
+| fin_root_chord | DOUBLE PRECISION | No | Root chord fin |
+| fin_tip_chord | DOUBLE PRECISION | No | Tip chord fin |
+| fin_span | DOUBLE PRECISION | No | Span fin |
+| fin_position | DOUBLE PRECISION | No | Posisi fin dari referensi roket |
 | notes | TEXT | No | Catatan tambahan |
 | created_at | TIMESTAMP | Yes | Waktu dibuat |
 | updated_at | TIMESTAMP | Yes | Waktu terakhir diubah |
@@ -324,6 +342,14 @@ wet_mass > dry_mass
 diameter > 0 if provided
 length > 0 if provided
 drag_coefficient > 0 if provided
+center_of_mass_position >= 0 if provided
+motor_position >= 0 if provided
+nose_length > 0 if provided
+fin_count > 0 if provided
+fin_root_chord > 0 if provided
+fin_tip_chord > 0 if provided
+fin_span > 0 if provided
+fin_position >= 0 if provided
 ```
 
 ### SQL Draft
@@ -340,6 +366,15 @@ CREATE TABLE rockets (
     diameter DOUBLE PRECISION CHECK (diameter IS NULL OR diameter > 0),
     length DOUBLE PRECISION CHECK (length IS NULL OR length > 0),
     drag_coefficient DOUBLE PRECISION CHECK (drag_coefficient IS NULL OR drag_coefficient > 0),
+    center_of_mass_position DOUBLE PRECISION CHECK (center_of_mass_position IS NULL OR center_of_mass_position >= 0),
+    motor_position DOUBLE PRECISION CHECK (motor_position IS NULL OR motor_position >= 0),
+    nose_length DOUBLE PRECISION CHECK (nose_length IS NULL OR nose_length > 0),
+    nose_kind VARCHAR(80),
+    fin_count INTEGER CHECK (fin_count IS NULL OR fin_count > 0),
+    fin_root_chord DOUBLE PRECISION CHECK (fin_root_chord IS NULL OR fin_root_chord > 0),
+    fin_tip_chord DOUBLE PRECISION CHECK (fin_tip_chord IS NULL OR fin_tip_chord > 0),
+    fin_span DOUBLE PRECISION CHECK (fin_span IS NULL OR fin_span > 0),
+    fin_position DOUBLE PRECISION CHECK (fin_position IS NULL OR fin_position >= 0),
     notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
